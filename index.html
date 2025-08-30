@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerador de Plano de Aula</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    .hide-conteudos{display:none !important;}
+
+    :root{
+      --bg:#f7f7fb;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#5b6472;
+      --line:#e5e7eb;
+      --accent:#2563eb;
+      --accent-ink:#fff;
+      --chip:#eef2ff;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      line-height:1.35;
+    }
+    h1{font-weight:800;letter-spacing:.3px}
+    .container{
+      max-width:1100px;
+      margin:24px auto;
+      padding:0 16px 80px;
+    }
+    .hero{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin:16px 0 20px;
+    }
+    .hero .title{
+      display:flex;gap:12px;align-items:center;
+    }
+    .badge{background:var(--chip);padding:6px 10px;border-radius:999px;font-size:12px;color:#3730a3}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:0 2px 12px rgba(0,0,0,.04);
+      padding:18px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12, 1fr);
+      gap:14px;
+    }
+    .field{display:flex;flex-direction:column;gap:8px}
+    .field label{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.2px}
+    input[type="text"],input[type="number"],input[type="url"],select,textarea{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      color:var(--ink);
+      outline:none;
+      transition:.2s border-color;
+      min-height:40px;
+    }
+    input[type="file"]{font-size:13px}
+    textarea{min-height:90px;resize:vertical}
+    select[multiple]{min-height:110px}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+    button{
+      appearance:none;
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      background:var(--accent);
+      color:var(--accent-ink);
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s transform,.2s opacity,.2s background;
+    }
+    button.secondary{background:#0f172a;color:#fff}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+    button:active{transform:translateY(1px)}
+    .muted{color:var(--muted);font-size:13px}
+    details{background:#fafafa;border:1px dashed var(--line);border-radius:12px;padding:12px}
+    details summary{cursor:pointer;font-weight:700;margin-bottom:12px}
+    .sig-wrap{
+      display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;
+    }
+    .sig-pad{
+      border:1px dashed var(--line);
+      border-radius:12px;
+      background:white;
+      width:340px;height:120px;
+    }
+    .preview-wrap{margin-top:28px}
+    .preview-title{font-size:13px;color:var(--muted);font-weight:700;margin:12px 2px}
+    .print-area{
+      background:white;
+      color:black;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px 18px 28px;
+    }
+    .plan-header{
+      display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:12px
+    }
+    .school-logo{width:72px;height:72px;border-radius:12px;object-fit:contain;border:1px solid var(--line);background:#fff}
+    .school-name{font-family:Merriweather, serif;font-size:20px;font-weight:700;margin:0}
+    .meta{font-size:12px;color:#555;margin-top:4px}
+    .data-table{
+      width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;font-size:13px
+    }
+    .data-table th,.data-table td{
+      border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+      border-right:1px solid var(--line);
+      padding:8px 10px;vertical-align:top
+    }
+    .data-table th:first-child,.data-table td:first-child{border-left:1px solid var(--line)}
+    .data-table th{background:#fafafa;text-align:left;font-weight:800}
+    .foot{
+      display:flex;justify-content:space-between;align-items:flex-end;margin-top:20px;gap:10px
+    }
+    .sign-block{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:12px}
+    .sign-line{border-top:1px solid #000;width:240px;height:1px}
+    .chip{display:inline-block;background:#eef2ff;border:1px solid #c7d2fe;padding:2px 8px;border-radius:999px;font-size:12px}
+    .hidden{display:none !important}
+    .row-gap{margin-top:6px}
+    .two-col{columns:2;column-gap:16px}
+    @media (max-width:900px){
+      .two-col{columns:1}
+    }
+    /* Print styles */
+    @page { size:A4; margin:12mm }
+    @media print {
+      body{background:white}
+      .no-print{display:none !important}
+      .print-area{box-shadow:none;border:none;border-radius:0;padding:0}
+      .data-table th{background:#f3f4f6 !important;-webkit-print-color-adjust:exact; print-color-adjust:exact}
+      .container{padding:0; margin:0}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="title">
+        <h1>Gerador de Plano de Aula</h1>
+        <span class="badge">A4 • Imprima ou salve em PDF</span>
+      </div>
+      <div class="no-print muted">Dica: carregue sua planilha CSV e escolha o Ano/Faixa.</div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="field" style="grid-column: span 6;">
+          <label for="school">Nome da Escola</label>
+          <input id="school" type="text" placeholder="Escola Municipal Dom Silvio Maria Dário" />
+        </div>
+        <div class="field" style="grid-column: span 3;">
+          <label for="teacher">Nome do Professor</label>
+          <input id="teacher" type="text" placeholder="Prof. Cristiano Abreu" />
+        </div>
+        <div class="field" style="grid-column: span 3;">
+          <label for="class">Turma</label>
+          <input id="class" type="text" placeholder="7º C" />
+        </div>
+
+        <div class="field" style="grid-column: span 3;">
+          <label for="tipoPlano">TIPO DE PLANO</label>
+          <select id="tipoPlano">
+            <option value="Semanal">SEMANAL</option>
+            <option value="Quinzenal">QUINZENAL</option>
+            <option value="Mensal">MENSAL</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column: span 3;">
+          <label for="component">COMPONENTE</label>
+          <input id="component" type="text" value="Língua Inglesa" />
+        </div>
+        <div class="field" style="grid-column: span 3;">
+          <label for="lessons">NÚMERO DE AULAS</label>
+          <input id="lessons" type="number" min="1" value="2" />
+        </div>
+
+        <div class="field" style="grid-column: span 3;">
+          <label for="ano">ANO/FAIXA <span class="chip" id="anoChip">aguardando dados</span></label>
+          <select id="ano">
+            <option value="">— Carregue a planilha para listar —</option>
+          </select>
+        </div>
+
+        <div class="field" style="grid-column: span 12;">
+          <details>
+            <summary>Fonte de dados (planilha)</summary>
+            <div class="grid row-gap">
+              <div class="field" style="grid-column: span 6;">
+                <label for="csvFile">Carregar CSV (modelo abaixo)</label>
+                <input id="csvFile" type="file" accept=".csv,text/csv" />
+                <button id="btnLoadLocal" type="button" class="ghost" style="margin-top:8px">Ler arquivo selecionado</button>
+                <div id="statusMsg" class="muted" style="margin-top:6px"><strong>Status:</strong> aguardando arquivo…</div>
+<div id="dropZone" class="muted" style="margin-top:8px;border:1px dashed #cbd5e1;border-radius:10px;padding:10px">💾 Ou arraste e solte o CSV aqui</div>
+              </div>
+              <div class="field" style="grid-column: span 6;">
+                <label for="csvUrl">Ou cole a URL CSV publicada (Google Sheets)</label>
+                <input id="csvUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/ID/export?format=csv" />
+              </div>
+            </div>
+            <div class="actions">
+              <button id="btnLoadCsv" class="ghost">Carregar da URL</button>
+              <button id="btnExample" type="button">Carregar EXEMPLO</button>
+              <button id="btnDownloadModel" type="button" class="secondary">Baixar modelo de planilha (CSV)</button>
+              <span class="muted">Colunas obrigatórias: <strong>ANO, COMPONENTE, EIXO, UNIDADE_TEMATICA, OBJETO_CONHECIMENTO, HABILIDADE_COD, HABILIDADE_DESC, CONTEUDO</strong></span>
+            </div>
+          </details>
+        </div>
+
+        <div class="field" style="grid-column: span 4;">
+          <label for="eixos">EIXO (selecione 1 ou mais)</label>
+          <select id="eixos" multiple disabled>
+          </select>
+        </div>
+
+        <div class="field" style="grid-column: span 4;">
+          <label for="unidades">UNIDADES TEMÁTICAS</label>
+          <select id="unidades" multiple disabled>
+          </select>
+        </div>
+
+        <div class="field" style="grid-column: span 4;">
+          <label for="objetos">OBJETOS DE CONHECIMENTO</label>
+          <select id="objetos" multiple disabled>
+          </select>
+        </div>
+
+        <div class="field" style="grid-column: span 6;">
+          <label for="habilidades">HABILIDADES</label>
+          <select id="habilidades" multiple disabled></select>
+        </div>
+
+        <div class="field hide-conteudos" style="grid-column: span 6;">
+          <label for="conteudos">CONTEÚDO (da planilha)</label>
+          <select id="conteudos" multiple disabled></select>
+        </div>
+
+                <div class="field" style="grid-column: span 6;">
+          <label for="conteudoLivre">CONTEÚDO (digite livremente)</label>
+          <textarea id="conteudoLivre" placeholder="Digite um por linha ou separados por ; 
+Ex.: Simple present
+Rotinas diárias
+Pronomes pessoais"></textarea>
+        </div>
+
+        <div class="field" style="grid-column: span 6;">
+          <label for="desenvolvimento">DESENVOLVIMENTO</label>
+          <textarea id="desenvolvimento" placeholder="Descreva as etapas da aula, estratégias didáticas, momentos avaliativos..."></textarea>
+        </div>
+
+        <div class="field" style="grid-column: span 6;">
+          <label for="recursos">RECURSOS</label>
+          <textarea id="recursos" placeholder="TV/Projetor, slides, Wordwall, folhas impressas, livros, caixas de som..."></textarea>
+        </div>
+
+        <div class="field" style="grid-column: span 6;">
+          <label for="logo">Logo da Escola (PNG/JPG)</label>
+          <input id="logo" type="file" accept="image/*">
+        </div>
+
+        <div class="field" style="grid-column: span 6;">
+          <label>Assinatura do Professor (assine no quadro abaixo ou envie uma imagem)</label>
+          <div class="sig-wrap">
+            <canvas id="sigPad" class="sig-pad" aria-label="Área para assinatura"></canvas>
+            <div>
+              <div class="actions" style="margin-top:0">
+                <button id="sigClear" type="button" class="ghost">Limpar</button>
+                <label class="muted" for="sigUpload" style="align-self:center">ou</label>
+                <input id="sigUpload" type="file" accept="image/*">
+              </div>
+              <div class="muted" style="max-width:360px">Use o mouse ou o dedo (em telas sensíveis) para assinar. A assinatura será inserida no rodapé.</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- grid -->
+
+      <div class="actions">
+        <button id="btnGenerate" type="button">Gerar plano</button>
+        <button id="btnPrint" type="button" class="secondary">Imprimir / Salvar PDF</button>
+        <button id="btnReset" type="button" class="ghost">Limpar tudo</button>
+      </div>
+    </div><!-- card -->
+
+    <div class="preview-wrap">
+      <div class="preview-title">Pré-visualização para impressão</div>
+      <div id="preview" class="print-area">
+        <div class="muted">A prévia será gerada aqui.</div>
+      </div>
+    </div>
+
+    <div class="card no-print" style="margin-top:18px">
+      <details>
+        <summary>Instruções do modelo de planilha (CSV)</summary>
+        <ol>
+          <li>Crie uma planilha (Excel/Google Sheets) com <strong>exatamente</strong> estas colunas, nessa ordem:<br>
+            <code>ANO;COMPONENTE;EIXO;UNIDADE_TEMATICA;OBJETO_CONHECIMENTO;HABILIDADE_COD;HABILIDADE_DESC;CONTEUDO</code>
+          </li>
+          <li>Use <strong>ponto e vírgula</strong> (<code>;</code>) como separador. Uma linha por combinação possível.</li>
+          <li>Mantenha nomes consistentes. Ex.: <em>7º ano</em>, <em>Oralidade</em>, <em>Leitura</em>, etc.</li>
+          <li>Exporte como <strong>CSV</strong>. No Google Sheets também é possível publicar um link CSV e colá-lo no campo de URL.</li>
+          <li>Após carregar os dados, selecione o <strong>ANO/FAIXA</strong>. Os campos <em>Eixo</em>, <em>Unidades</em>, <em>Objetos</em>, <em>Habilidades</em> e <em>Conteúdo</em> serão filtrados automaticamente.</li>
+        </ol>
+      </details>
+    </div>
+
+  </div><!-- container -->
+
+<script>
+/* ------------------ Utils ------------------ */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+function uniq(arr){ return [...new Set(arr.filter(Boolean))]; }
+
+function selectedValues(select){
+  return Array.from(select.selectedOptions).map(o => o.value).filter(Boolean);
+}
+
+function optionize(select, values, formatter = v => v){
+  const prev = selectedValues(select);
+  select.innerHTML = "";
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = formatter(v);
+    if(prev.includes(v)) opt.selected = true;
+    select.appendChild(opt);
+  });
+  select.disabled = values.length === 0;
+}
+
+/** Simple CSV parser supporting comma or semicolon and quoted fields */
+function parseCSV(text){
+  const rows = [];
+  let i = 0, field = "", row = [], inQuotes = false, quoteChar = '"', sep = null;
+
+  // detect separator by first line
+  const firstLine = text.split(/\r?\n/)[0] || "";
+  sep = (firstLine.includes(";") && !firstLine.includes(",")) ? ";" : ",";
+
+  while(i < text.length){
+    const char = text[i];
+    if(inQuotes){
+      if(char === quoteChar){
+        if(text[i+1] === quoteChar){ field += quoteChar; i++; } // escaped quote
+        else { inQuotes = false; }
+      }else{
+        field += char;
+      }
+    }else{
+      if(char === '"' || char === "'"){
+        inQuotes = true; quoteChar = char;
+      }else if(char === sep){
+        row.push(field.trim()); field="";
+      }else if(char === "\n"){
+        row.push(field.trim()); rows.push(row); field=""; row=[];
+      }else if(char === "\r"){
+        // ignore
+      }else{
+        field += char;
+      }
+    }
+    i++;
+  }
+  if(field.length || row.length) { row.push(field.trim()); rows.push(row); }
+  return rows.filter(r => r.length && r.some(c => c && c.length));
+}
+
+function toObjects(rows, header){
+  return rows.map(r => {
+    const obj = {};
+    header.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
+    return obj;
+  });
+}
+
+function sanitizeHeader(h){
+  return h.trim().toUpperCase()
+    .replace(/\s+/g,"_")
+    .replace(/Ç/g,"C").replace(/Ã|Â/g,"A").replace(/Ê/g,"E").replace(/Í/g,"I").replace(/Ó/g,"O").replace(/Ú/g,"U")
+    .replace(/[ÁÀÄ]/g,"A").replace(/[ÉÈË]/g,"E").replace(/[ÍÌÏ]/g,"I").replace(/[ÓÒÖ]/g,"O").replace(/[ÚÙÜ]/g,"U");
+}
+
+/* --------------- State & Data --------------- */
+let DATA = []; // array of rows {ANO, COMPONENTE, EIXO, UNIDADE_TEMATICA, OBJETO_CONHECIMENTO, HABILIDADE_COD, HABILIDADE_DESC, CONTEUDO}
+let LOGO_DATAURL = "";
+let SIG_DATAURL = "";
+
+/* --------- Load & Bind: Planilha CSV -------- */
+function loadRowsFromCSVText(text){
+  const rows = parseCSV(text);
+  if(rows.length < 2){ alert("CSV vazio ou inválido."); return; }
+  const hdr = rows[0].map(sanitizeHeader);
+  const required = ["ANO","COMPONENTE","EIXO","UNIDADE_TEMATICA","OBJETO_CONHECIMENTO","HABILIDADE_COD","HABILIDADE_DESC","CONTEUDO"];
+  const missing = required.filter(k => !hdr.includes(k));
+  if(missing.length){ alert("Cabeçalhos ausentes: " + missing.join(", ")); return; }
+  const idx = required.map(k => hdr.indexOf(k));
+  const body = rows.slice(1).map(r => idx.map(i => (r[i] ?? "").trim()));
+  DATA = toObjects(body, required);
+  hydrateAnoOptions();
+  $("#anoChip").textContent = "dados carregados";
+}
+
+function hydrateAnoOptions(){
+  const anos = uniq(DATA.map(r => r.ANO));
+  optionize($("#ano"), ["", ...anos], v => v ? v : "— Selecione —");
+  $("#eixos").innerHTML = ""; $("#eixos").disabled = true;
+  $("#unidades").innerHTML = ""; $("#unidades").disabled = true;
+  $("#objetos").innerHTML = ""; $("#objetos").disabled = true;
+  $("#habilidades").innerHTML = ""; $("#habilidades").disabled = true;
+  $("#conteudos").innerHTML = ""; $("#conteudos").disabled = true;
+}
+
+
+/* ------- Dependent filtering (cascata) ------ */
+$("#ano").addEventListener("change", () => {
+  const ano = $("#ano").value;
+  if(!ano){ optionize($("#eixos"), [], String); return; }
+  const eixos = uniq(DATA.filter(r => r.ANO === ano).map(r => r.EIXO));
+  optionize($("#eixos"), eixos);
+  optionize($("#unidades"), []);
+  optionize($("#objetos"), []);
+  optionize($("#habilidades"), []);
+  optionize($("#conteudos"), []);
+});
+
+$("#eixos").addEventListener("change", () => {
+  const ano = $("#ano").value;
+  const eixos = selectedValues($("#eixos"));
+  const subset = DATA.filter(r => r.ANO === ano && (eixos.length ? eixos.includes(r.EIXO) : true));
+  const unidades = uniq(subset.map(r => r.UNIDADE_TEMATICA));
+  optionize($("#unidades"), unidades);
+  optionize($("#objetos"), []);
+  optionize($("#habilidades"), []);
+  optionize($("#conteudos"), []);
+});
+
+$("#unidades").addEventListener("change", () => {
+  const ano = $("#ano").value;
+  const eixos = selectedValues($("#eixos"));
+  const unidades = selectedValues($("#unidades"));
+  const subset = DATA.filter(r =>
+    r.ANO === ano &&
+    (eixos.length ? eixos.includes(r.EIXO) : true) &&
+    (unidades.length ? unidades.includes(r.UNIDADE_TEMATICA) : true)
+  );
+  const objetos = uniq(subset.map(r => r.OBJETO_CONHECIMENTO));
+  optionize($("#objetos"), objetos);
+  optionize($("#habilidades"), []);
+  optionize($("#conteudos"), []);
+});
+
+$("#objetos").addEventListener("change", () => {
+  const ano = $("#ano").value;
+  const eixos = selectedValues($("#eixos"));
+  const unidades = selectedValues($("#unidades"));
+  const objetos = selectedValues($("#objetos"));
+  const subset = DATA.filter(r =>
+    r.ANO === ano &&
+    (eixos.length ? eixos.includes(r.EIXO) : true) &&
+    (unidades.length ? unidades.includes(r.UNIDADE_TEMATICA) : true) &&
+    (objetos.length ? objetos.includes(r.OBJETO_CONHECIMENTO) : true)
+  );
+  const habilidades = uniq(subset.map(r => `${r.HABILIDADE_COD} — ${r.HABILIDADE_DESC}`));
+  const conteudos = uniq(subset.map(r => r.CONTEUDO));
+  optionize($("#habilidades"), habilidades);
+  optionize($("#conteudos"), conteudos);
+});
+
+/* ------------- File & URL loading ----------- */
+$("#csvFile").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => loadRowsFromCSVText(String(reader.result));
+  reader.readAsText(file, "utf-8");
+});
+
+$("#btnLoadCsv").addEventListener("click", async () => {
+  const url = ($("#csvUrl").value || "").trim();
+  if(!url){ alert("Cole a URL CSV publicada."); return; }
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("Erro ao buscar o CSV (verifique se está público).");
+    const text = await res.text();
+    loadRowsFromCSVText(text);
+  }catch(err){
+    alert("Não foi possível carregar a URL. Dica: baixe o CSV e use 'Carregar CSV'.\n\n" + err.message);
+  }
+});
+
+// Example minimal dataset
+const EXAMPLE_CSV = `ANO;COMPONENTE;EIXO;UNIDADE_TEMATICA;OBJETO_CONHECIMENTO;HABILIDADE_COD;HABILIDADE_DESC;CONTEUDO
+6º ano;Língua Inglesa;Oralidade;Compreensão Oral;Pronomes pessoais;HAB-ING-6-01;Participar de interações orais simples com cumprimentos e apresentações;Subject pronouns
+6º ano;Língua Inglesa;Leitura;Compreensão de textos curtos;Vocabulário cotidiano;HAB-ING-6-02;Ler e localizar informações específicas em textos curtos;Daily routines
+6º ano;Língua Inglesa;Escrita;Produção guiada;Estruturas básicas;HAB-ING-6-03;Produzir frases simples com apoio;Simple present
+7º ano;Língua Inglesa;Leitura;Compreensão de textos;Gêneros digitais;HAB-ING-7-01;Ler textos digitais com vocabulário cotidiano;Web texts
+7º ano;Língua Inglesa;Oralidade;Interação oral;Perguntas e respostas;HAB-ING-7-02;Realizar perguntas e respostas sobre rotina;Wh-questions
+8º ano;Língua Inglesa;Gramática;Estruturas verbais;Futuro;HAB-ING-8-01;Diferenciar usos de will e going to em contextos reais;Future forms
+8º ano;Língua Inglesa;Cultura;Comunicação intercultural;Costumes e festividades;HAB-ING-8-02;Reconhecer costumes em países de língua inglesa;Festivities`;
+
+$("#btnExample").addEventListener("click", () => {
+  loadRowsFromCSVText(EXAMPLE_CSV);
+});
+
+$("#btnDownloadModel").addEventListener("click", () => {
+  const header = "ANO;COMPONENTE;EIXO;UNIDADE_TEMATICA;OBJETO_CONHECIMENTO;HABILIDADE_COD;HABILIDADE_DESC;CONTEUDO\n";
+  const blob = new Blob([header], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "modelo_plano.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ---------------- Logo upload --------------- */
+$("#logo").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { LOGO_DATAURL = String(reader.result) };
+  reader.readAsDataURL(file);
+});
+
+/* ----------------- Signature ---------------- */
+const sigPad = $("#sigPad");
+const ctx = sigPad.getContext("2d");
+ctx.lineWidth = 2.2; ctx.lineCap="round"; ctx.strokeStyle="#111827";
+let drawing=false, lastX=0, lastY=0;
+
+function pos(e){
+  const rect = sigPad.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  return {x,y};
+}
+function start(e){ drawing=true; const p = pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
+function move(e){
+  if(!drawing) return;
+  const p = pos(e);
+  ctx.beginPath();
+  ctx.moveTo(lastX,lastY);
+  ctx.lineTo(p.x,p.y);
+  ctx.stroke();
+  lastX=p.x; lastY=p.y;
+  e.preventDefault();
+}
+function end(){ drawing=false; SIG_DATAURL = sigPad.toDataURL("image/png"); }
+["mousedown","touchstart"].forEach(ev => sigPad.addEventListener(ev, start, {passive:false}));
+["mousemove","touchmove"].forEach(ev => sigPad.addEventListener(ev, move, {passive:false}));
+["mouseup","mouseleave","touchend","touchcancel"].forEach(ev => sigPad.addEventListener(ev, end));
+$("#sigClear").addEventListener("click", () => { ctx.clearRect(0,0,sigPad.width,sigPad.height); SIG_DATAURL=""; });
+$("#sigUpload").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { SIG_DATAURL = String(reader.result) };
+  reader.readAsDataURL(file);
+});
+
+/* ----------------- Generate ----------------- */
+function bulletList(items){
+  const safe = (items||[]).filter(Boolean);
+  if(!safe.length) return "<span class='muted'>—</span>";
+  return "<ul class='two-col' style='margin:6px 0 0 18px'>" + safe.map(i => `<li>${i}</li>`).join("") + "</ul>";
+}
+
+function nowBR(){
+  const d = new Date();
+  return d.toLocaleDateString('pt-BR');
+}
+
+function renderPreview(){
+  const school = $("#school").value || "—";
+  const teacher= $("#teacher").value || "—";
+  const turma  = $("#class").value || "—";
+  const tipo   = $("#tipoPlano").value || "—";
+  const comp   = $("#component").value || "—";
+  const aulas  = $("#lessons").value || "—";
+  const ano    = $("#ano").value || "—";
+  const eixos  = selectedValues($("#eixos"));
+  const unidades = selectedValues($("#unidades"));
+  const objetos  = selectedValues($("#objetos"));
+  const habilidades = selectedValues($("#habilidades"));
+  const conteudoLivreTxt = ($("#conteudoLivre")?.value || "").trim();
+  const conteudos = conteudoLivreTxt
+    ? conteudoLivreTxt.split(/
+|;/).map(s => s.trim()).filter(Boolean)
+    : selectedValues($("#conteudos"));
+  const desenvolvimento = $("#desenvolvimento").value || "—";
+  const recursos       = $("#recursos").value || "—";
+
+  const logoImg = LOGO_DATAURL ? `<img src="${LOGO_DATAURL}" class="school-logo" alt="Logo">` : `<div class="school-logo" aria-label="Logo não informado"></div>`;
+  const sigImg = SIG_DATAURL ? `<img src="${SIG_DATAURL}" alt="Assinatura" style="width:220px;opacity:.95" />` : `<div style="height:40px"></div>`;
+
+  $("#preview").innerHTML = `
+    <header class="plan-header">
+      ${logoImg}
+      <div>
+        <h2 class="school-name">${school}</h2>
+        <div class="meta">
+          <strong>Componente:</strong> ${comp} •
+          <strong>Tipo:</strong> ${tipo} •
+          <strong>Ano/Faixa:</strong> ${ano} •
+          <strong>Turma:</strong> ${turma} •
+          <strong>Aulas:</strong> ${aulas} •
+          <strong>Data:</strong> ${nowBR()}
+        </div>
+        <div class="meta"><strong>Professor(a):</strong> ${teacher}</div>
+      </div>
+    </header>
+
+    <table class="data-table">
+      <tr>
+        <th style="width:22%">EIXO</th>
+        <td>${bulletList(eixos)}</td>
+      </tr>
+      <tr>
+        <th>UNIDADES TEMÁTICAS</th>
+        <td>${bulletList(unidades)}</td>
+      </tr>
+      <tr>
+        <th>OBJETOS DE CONHECIMENTO</th>
+        <td>${bulletList(objetos)}</td>
+      </tr>
+      <tr>
+        <th>HABILIDADES</th>
+        <td>${bulletList(habilidades)}</td>
+      </tr>
+      <tr>
+        <th>CONTEÚDO</th>
+        <td>${bulletList(conteudos)}</td>
+      </tr>
+      <tr>
+        <th>DESENVOLVIMENTO</th>
+        <td><div style="margin-top:6px; white-space:pre-wrap">${desenvolvimento}</div></td>
+      </tr>
+      <tr>
+        <th>RECURSOS</th>
+        <td><div style="margin-top:6px; white-space:pre-wrap">${recursos}</div></td>
+      </tr>
+    </table>
+
+    <div class="foot">
+      <div></div>
+      <div class="sign-block">
+        ${sigImg}
+        <div class="sign-line"></div>
+        <div style="font-size:12px">Assinatura do(a) Professor(a)</div>
+      </div>
+    </div>
+  `;
+}
+
+$("#btnGenerate").addEventListener("click", () => {
+  if(!DATA.length){
+    if(!confirm("Nenhum CSV foi carregado. Você pode continuar (apenas campos livres) ou carregar a planilha depois. Continuar?")) return;
+  }
+  renderPreview();
+  $("#preview").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+$("#btnPrint").addEventListener("click", () => {
+  if($("#preview").textContent.includes("A prévia será gerada")){
+    renderPreview();
+  }
+  window.print();
+});
+
+$("#btnReset").addEventListener("click", () => {
+  if(!confirm("Limpar todos os campos?")) return;
+  $$("input[type=text], input[type=number], input[type=url], textarea").forEach(el => el.value = "");
+  $$("select").forEach(el => { el.selectedIndex = 0; });
+  $("#tipoPlano").value = "Semanal";
+  $("#component").value = "Língua Inglesa";
+  DATA=[]; hydrateAnoOptions();
+  $("#preview").innerHTML = "<div class='muted'>A prévia será gerada aqui.</div>";
+  LOGO_DATAURL=""; SIG_DATAURL="";
+  const ctx2 = sigPad.getContext("2d"); ctx2.clearRect(0,0,sigPad.width,sigPad.height);
+  $("#csvFile").value = ""; $("#csvUrl").value = "";
+  $("#anoChip").textContent = "aguardando dados";
+});
+
+// graceful: try to keep signature image up to date
+setInterval(() => {
+  if(!SIG_DATAURL){
+    try{ SIG_DATAURL = sigPad.toDataURL("image/png"); } catch {}
+  }
+}, 2000);
+
+// --- Novo: botão para ler arquivo local manualmente e status ---
+const statusMsg = document.getElementById("statusMsg");
+function setStatus(msg){ if(statusMsg){ statusMsg.textContent = "Status: " + msg; } }
+
+document.getElementById("btnLoadLocal").addEventListener("click", () => {
+  const file = $("#csvFile").files?.[0];
+  if(!file){ alert("Escolha um arquivo CSV primeiro."); setStatus("nenhum arquivo selecionado"); return; }
+  const reader = new FileReader();
+  reader.onload = () => { 
+    loadRowsFromCSVText(String(reader.result));
+    setStatus("dados carregados do arquivo local");
+  };
+  reader.onerror = () => { setStatus("erro ao ler arquivo local"); alert("Erro ao ler o arquivo."); };
+  reader.readAsText(file, "utf-8");
+});
+
+// Atualizar status ao escolher arquivo
+$("#csvFile").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if(file){ setStatus("arquivo selecionado: " + file.name + " (clique em 'Ler arquivo selecionado')"); }
+  else{ setStatus("aguardando arquivo…"); }
+});
+
+
+// --- v1.2: diagnóstico, drag&drop e fallback de encoding ---
+const dropZone = document.getElementById("dropZone");
+function setStatus(msg){ if(statusMsg){ statusMsg.innerHTML = "<strong>Status:</strong> " + msg; } }
+
+async function readFileAsText(file, enc="utf-8"){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(new Error("Falha ao ler: " + (r.error?.message || "")));
+    r.readAsText(file, enc);
+  });
+}
+
+async function handleFile(file){
+  try{
+    setStatus("lendo arquivo '" + file.name + "' com UTF-8…");
+    let text = await readFileAsText(file, "utf-8");
+    loadRowsFromCSVText(String(text));
+    setStatus("dados carregados de '" + file.name + "' (UTF-8)");
+  }catch(e1){
+    try{
+      setStatus("falhou UTF-8, tentando Latin-1…");
+      let text2 = await readFileAsText(file, "ISO-8859-1");
+      loadRowsFromCSVText(String(text2));
+      setStatus("dados carregados de '" + file.name + "' (Latin-1)");
+    }catch(e2){
+      console.error(e1, e2);
+      alert("Não consegui ler o arquivo. Tente 'Carregar da URL' ou reexporte como CSV UTF-8.");
+      setStatus("erro ao ler arquivo (veja o console com F12)");
+    }
+  }
+}
+
+document.getElementById("btnLoadLocal").addEventListener("click", async () => {
+  const file = $("#csvFile").files?.[0];
+  if(!file){ alert("Escolha um arquivo CSV primeiro."); setStatus("nenhum arquivo selecionado"); return; }
+  await handleFile(file);
+});
+
+// Atualizar status ao escolher arquivo
+$("#csvFile").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if(file){ setStatus("arquivo selecionado: " + file.name + " (clique em 'Ler arquivo selecionado')"); }
+  else{ setStatus("aguardando arquivo…"); }
+});
+
+// Drag & Drop
+["dragenter","dragover"].forEach(ev => dropZone.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); dropZone.style.background="#f8fafc"; }, false));
+["dragleave","drop"].forEach(ev => dropZone.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); dropZone.style.background="transparent"; }, false));
+dropZone.addEventListener("drop", async (e)=>{
+  const file = e.dataTransfer.files?.[0];
+  if(!file) return;
+  $("#csvFile").files = e.dataTransfer.files;
+  setStatus("arquivo selecionado: " + file.name + " (lendo…)");
+  await handleFile(file);
+});
+
+// Após carregar, mostrar contagem de linhas e anos
+const originalLoad = loadRowsFromCSVText;
+window.loadRowsFromCSVText = function(text){
+  originalLoad(text);
+  try{
+    const anos = uniq(DATA.map(r => r.ANO));
+    setStatus(`dados carregados • ${DATA.length} linhas • anos: ${anos.join(", ")}`);
+  }catch(err){
+    console.error(err);
+  }
+};
+
+</script>
+</body>
+</html>
